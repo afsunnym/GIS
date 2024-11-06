@@ -3,64 +3,120 @@ title: "Global_Gender_Inequality"
 output: html_document
 date: "2024-10-26"
 ---
+
+```{r}
 library(here)
 library(readr)
 library(sf)
 library(dplyr)
 library(countrycode)
+```
 
 #step 1.1: loading the inqeuality data
 
-global_gender_inequality <- read.csv(here("HDR23-24_Composite_indices_complete_time_series.csv"),
-                                       fileEncoding = "UTF-8") %>%
+```{r}
+global_gender_inequality <- read.csv(here("HDR23-24_Composite_indices_complete_time_series.csv")) %>%
   select(iso3, gii_2010, gii_2019)
+
+```
 
 
 #step 1.2: calculationg the difference between 2010 and 2019                                   
-
+```{r}
 gii20102019 <- global_gender_inequality %>%
   mutate(diff_gii = gii_2019 - gii_2010) %>%
   filter(!is.na(diff_gii))
+```
 
 #step 1.3: checking the data 
-
+```{r}
 head(gii20102019,10)
 
-
-
+```
 
 #step 2.1: loading the spatial data (GeoJSON)
-
+```{r}
 countries_GeoJSON <- st_read(here("World_Countries_(Generalized)_9029012925078512962.geojson"))
+```
 
 #step 2.2: adding iso3 column using the "countrycode" package
-
+```{r}
 countries_data <- countries_GeoJSON %>%
   mutate(iso3 = countrycode(ISO, origin = "iso2c", destination = "iso3c"))
+```
 
-  
 #step 2.3: checking the data
-
+```{r}
 head(countries_data,10)
+
+```
 
 #step 2.4: too messy! let's clean up a bit
 
+```{r}
 countries_clean <- countries_data %>%
   select(COUNTRY, geometry, iso3)
+```
 
 #step 2.5: let's check the data again
-
+```{r}
 head(countries_clean, 10)
   #much better, nice and clean
-
+```
 
 #step 3.1: combining the inequality data to the spatial data using (left_join)
-
+```{r}
 merged <- countries_clean %>%
   left_join(gii20102019, by = "iso3")
+```
 
 #step 3.2: checking the combined data
-
+```{r}
 head(merged,10)
+```
 
-###*DONE*
+#step 4: creating a map for the combined data
+```{r Map}
+#Loading required packages
+library(tmap)
+library(tmaptools)
+tmap_mode = "plot"
+
+#Simplifying geometry for nicer borders (st_simplify wasn't working)
+library(rmapshaper)
+merged <- ms_simplify(merged, keep = 0.05)
+
+#Map
+tm_shape(merged)+
+  tm_fill("diff_gii", 
+              style="pretty",
+              n=7,
+              palette="-PuOr",
+              midpoint=0,
+              title="Change in GII", 
+              alpha=0.9, 
+              borders=FALSE, 
+              textNA = "No Data",
+              legend.hist = TRUE)+
+    tm_borders(
+        col="black",
+        lty="solid",
+        lwd=0.6)+
+    tm_compass(position = c(0.005, 0.2), size=1.5)+
+    tm_scale_bar(text.size=0.4,position=c(0.005, 0.1), width=0.2)+
+    tm_layout(
+        main.title.position = c("left", "top"),      
+        main.title.size = 1.5,
+        main.title="Change in UN Gender Inequality Index: 2010 to 2019",
+        bg.color="skyblue",
+        frame=TRUE,
+        legend.outside=TRUE,
+        outer.margins = c(0, 0, 0.1, 0))+
+  tm_credits("Note: a decrease in GII constitutes an increase in gender equality.", size = 0.4, position=c(0.5, 0.02))
+
+
+#Not sure if tmap is very difficult to use
+#Or if it just doesn't work well on my laptop
+#But leaving this here as I think I'll have a mental breakdown if I continue
+```
+
