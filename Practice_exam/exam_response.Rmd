@@ -1,14 +1,14 @@
 ---
-title: "Name: Andy MacLachlan"
-author: 
+title: 
+author: "Name: Afsun Mehmani"
 - |
-    | Student number: TEST
+    | Student number: 24135439
 date: "`r format(Sys.time(), '%X, %d %B, %Y')`"
 output: html_document
 ---
 # Originality declaration  
 
-I, [**insert your name**], confirm that the work presented in this assessment is my own. Where information has been derived from other sources, I confirm that this has been indicated in the work.
+I, [**Afsun Mehmani**], confirm that the work presented in this assessment is my own. Where information has been derived from other sources, I confirm that this has been indicated in the work.
 
 date: `r format(Sys.time(), '%d %B, %Y')`
 
